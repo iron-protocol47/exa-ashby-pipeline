@@ -1,0 +1,10 @@
+# Railway config-as-code: https://docs.railway.com/guides/config-as-code
+# Dashboard settings are overridden by this file when present.
+
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
