@@ -3,7 +3,7 @@ import sqlite3
 
 import pytest
 
-from app.db.connection import connect, init_db
+from app.db.connection import _migrate_mappings_job_to_project, connect, init_db
 from app.db.repositories import (
     ActivityLogRepository,
     MappingRepository,
@@ -16,6 +16,45 @@ def db_path(tmp_path):
     path = tmp_path / "test.db"
     init_db(path)
     return path
+
+
+def test_migrate_renames_ashby_job_column_to_project(tmp_path):
+    """v1 DBs used ashby_job_id; migration renames to ashby_project_id."""
+    path = tmp_path / "legacy.db"
+    conn = sqlite3.connect(path)
+    conn.executescript(
+        """
+        CREATE TABLE mappings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          webset_id TEXT NOT NULL UNIQUE,
+          ashby_job_id TEXT NOT NULL,
+          source_tag TEXT NOT NULL,
+          active INTEGER NOT NULL DEFAULT 1,
+          exa_webhook_id TEXT,
+          candidates_pushed_count INTEGER NOT NULL DEFAULT 0,
+          last_sync_at TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        INSERT INTO mappings (webset_id, ashby_job_id, source_tag)
+        VALUES ('ws_legacy', 'job_old', 'tag');
+        """
+    )
+    conn.commit()
+    conn.close()
+
+    conn = connect(path)
+    try:
+        _migrate_mappings_job_to_project(conn)
+        conn.commit()
+        row = conn.execute(
+            "SELECT ashby_project_id FROM mappings WHERE webset_id = ?",
+            ("ws_legacy",),
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "job_old"
+    finally:
+        conn.close()
 
 
 def test_init_db_creates_tables(db_path):
@@ -41,7 +80,7 @@ def test_mapping_crud_and_push_stats(db_path):
         maps = MappingRepository(conn)
         mid = maps.create(
             webset_id="ws_1",
-            ashby_job_id="job_a",
+            ashby_project_id="proj_a",
             source_tag="Tag",
             active=True,
         )

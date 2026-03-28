@@ -34,6 +34,8 @@ docker build -t exa-ashby-pipeline .
 docker run -p 8000:8000 --env-file .env exa-ashby-pipeline
 ```
 
+If you previously stored an Ashby **job** id in mappings, replace those rows with the correct **project** id (`project.list` in the Ashby API). The DB column was renamed automatically; UUIDs are not interchangeable.
+
 ## Railway go-live
 
 Repo includes [`railway.toml`](railway.toml) (Dockerfile build, `/health` check). The container listens on Railway’s `PORT` ([`Dockerfile`](Dockerfile)).
@@ -44,7 +46,7 @@ Repo includes [`railway.toml`](railway.toml) (Dockerfile build, `/health` check)
 2. **Volume:** add a persistent volume, mount at e.g. `/data`, set **`DATABASE_PATH=/data/app.db`**.
 3. **Variables** (copy names from [`.env.example`](.env.example); leave Slack vars empty until Phase E):
    - `EXA_API_KEY`, `EXA_WEBHOOK_SECRET` (after Exa webhook is created)
-   - `ASHBY_API_KEY`, optional `BRANDON_ASHBY_USER_ID`
+   - `ASHBY_API_KEY` (with `candidatesWrite` for `candidate.create` / `candidate.addProject`)
    - `ADMIN_BASIC_USER`, `ADMIN_BASIC_PASSWORD` (for `/api/mappings`)
    - `CATCH_UP_SECRET` (for `X-Cron-Secret` on `/catch-up`)
    - Production: do **not** set `EXA_SKIP_WEBHOOK_SIGNATURE_VERIFY`; optional `DRY_RUN=true` for a no-write smoke test
@@ -58,7 +60,7 @@ Repo includes [`railway.toml`](railway.toml) (Dockerfile build, `/health` check)
 
    ```bash
    BASE_URL=https://<public-host> ADMIN_BASIC_USER=... ADMIN_BASIC_PASSWORD=... \
-   WEBSET_ID=... ASHBY_JOB_ID=... SOURCE_TAG=... \
+   WEBSET_ID=... ASHBY_PROJECT_ID=... SOURCE_TAG=... \
    ./scripts/post-mapping.sh
    ```
 
@@ -67,7 +69,7 @@ Repo includes [`railway.toml`](railway.toml) (Dockerfile build, `/health` check)
 ### Phase C — Validate
 
 8. Locally: `pip install -r requirements-dev.txt && pytest`
-9. Trigger a `webset.item.enriched` event or run catch-up; confirm a candidate on the Ashby job.
+9. Trigger a `webset.item.enriched` event or run catch-up; confirm the candidate appears on the Ashby **Project** linked in the mapping.
 
 ### Phase D — Catch-up (optional)
 

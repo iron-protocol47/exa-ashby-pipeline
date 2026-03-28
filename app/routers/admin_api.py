@@ -54,7 +54,7 @@ def _mapping_to_dict(m: Mapping) -> dict:
     return {
         "id": m.id,
         "websetId": m.webset_id,
-        "ashbyJobId": m.ashby_job_id,
+        "ashbyProjectId": m.ashby_project_id,
         "sourceTag": m.source_tag,
         "active": m.active,
         "exaWebhookId": m.exa_webhook_id,
@@ -67,7 +67,7 @@ def _mapping_to_dict(m: Mapping) -> dict:
 
 class MappingCreate(BaseModel):
     webset_id: str = Field(min_length=1)
-    ashby_job_id: str = Field(min_length=1)
+    ashby_project_id: str = Field(min_length=1)
     source_tag: str = Field(min_length=1)
     active: bool = True
     exa_webhook_id: Optional[str] = None
@@ -94,7 +94,7 @@ def create_mapping(
         repo = MappingRepository(conn)
         mid = repo.create(
             webset_id=body.webset_id,
-            ashby_job_id=body.ashby_job_id,
+            ashby_project_id=body.ashby_project_id,
             source_tag=body.source_tag,
             active=body.active,
             exa_webhook_id=body.exa_webhook_id,

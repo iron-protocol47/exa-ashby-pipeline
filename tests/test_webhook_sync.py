@@ -22,7 +22,7 @@ def _mock_ashby_transport() -> httpx.MockTransport:
                 200,
                 json={"results": {"candidate": {"id": "ashby-cand-99"}}},
             )
-        if p.endswith("/application.create"):
+        if p.endswith("/candidate.addProject"):
             return httpx.Response(200, json={"success": True})
         return httpx.Response(404, text=f"unexpected {p}")
 
@@ -45,7 +45,7 @@ def sync_client(monkeypatch, tmp_path):
         maps = MappingRepository(conn)
         maps.create(
             webset_id="ws_123",
-            ashby_job_id="job_ashby_1",
+            ashby_project_id="proj_ashby_1",
             source_tag="Exa",
             active=True,
         )

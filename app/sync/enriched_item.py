@@ -133,19 +133,16 @@ def handle_enriched_item(
         out["skipReason"] = "no_ashby_key"
         return out
 
-    credited = (settings.brandon_ashby_user_id or "").strip() or None
-
     client = ashby_client
     if client is None:
         client = AshbyClient(api_key)
 
     try:
-        ashby_cand_id = client.create_candidate_and_apply_to_job(
-            job_id=mapping.ashby_job_id,
+        ashby_cand_id = client.create_candidate_and_add_to_project(
+            project_id=mapping.ashby_project_id,
             name=name,
             email=email,
             linkedin_url=linkedin_url,
-            credited_user_id=credited,
         )
     except httpx.HTTPStatusError as e:
         log.append(

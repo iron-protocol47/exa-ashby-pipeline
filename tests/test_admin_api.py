@@ -43,7 +43,7 @@ def test_admin_list_and_create(admin_client):
         auth=("admin", "secret"),
         json={
             "webset_id": "ws_x",
-            "ashby_job_id": "job_y",
+            "ashby_project_id": "proj_y",
             "source_tag": "Tag",
             "active": True,
         },
@@ -51,7 +51,7 @@ def test_admin_list_and_create(admin_client):
     assert r2.status_code == 200
     data = r2.json()
     assert data["websetId"] == "ws_x"
-    assert data["ashbyJobId"] == "job_y"
+    assert data["ashbyProjectId"] == "proj_y"
     assert data["active"] is True
 
     r3 = admin_client.get("/api/mappings", auth=("admin", "secret"))
