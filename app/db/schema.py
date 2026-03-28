@@ -1,6 +1,6 @@
 """DDL for SQLite. Applied via init_db (CREATE IF NOT EXISTS)."""
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 DDL = """
 PRAGMA foreign_keys = ON;
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 CREATE TABLE IF NOT EXISTS mappings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   webset_id TEXT NOT NULL UNIQUE,
-  ashby_job_id TEXT NOT NULL,
+  ashby_project_id TEXT NOT NULL,
   source_tag TEXT NOT NULL,
   active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
   exa_webhook_id TEXT,

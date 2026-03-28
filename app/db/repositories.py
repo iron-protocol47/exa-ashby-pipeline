@@ -29,7 +29,7 @@ class MappingRepository:
         self,
         *,
         webset_id: str,
-        ashby_job_id: str,
+        ashby_project_id: str,
         source_tag: str,
         active: bool = True,
         exa_webhook_id: str | None = None,
@@ -37,13 +37,13 @@ class MappingRepository:
         cur = self._conn.execute(
             """
             INSERT INTO mappings (
-              webset_id, ashby_job_id, source_tag, active, exa_webhook_id,
+              webset_id, ashby_project_id, source_tag, active, exa_webhook_id,
               updated_at
             ) VALUES (?, ?, ?, ?, ?, datetime('now'))
             """,
             (
                 webset_id.strip(),
-                ashby_job_id.strip(),
+                ashby_project_id.strip(),
                 source_tag.strip(),
                 1 if active else 0,
                 exa_webhook_id,
@@ -73,16 +73,16 @@ class MappingRepository:
         self,
         mapping_id: int,
         *,
-        ashby_job_id: str | None = None,
+        ashby_project_id: str | None = None,
         source_tag: str | None = None,
         active: bool | None = None,
         exa_webhook_id: str | None = None,
     ) -> None:
         fields: list[str] = []
         values: list[Any] = []
-        if ashby_job_id is not None:
-            fields.append("ashby_job_id = ?")
-            values.append(ashby_job_id.strip())
+        if ashby_project_id is not None:
+            fields.append("ashby_project_id = ?")
+            values.append(ashby_project_id.strip())
         if source_tag is not None:
             fields.append("source_tag = ?")
             values.append(source_tag.strip())

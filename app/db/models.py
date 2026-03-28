@@ -8,7 +8,7 @@ from typing import Any
 class Mapping:
     id: int
     webset_id: str
-    ashby_job_id: str
+    ashby_project_id: str
     source_tag: str
     active: bool
     exa_webhook_id: str | None
@@ -42,7 +42,7 @@ def mapping_from_row(row: Any) -> Mapping:
     return Mapping(
         id=row["id"],
         webset_id=row["webset_id"],
-        ashby_job_id=row["ashby_job_id"],
+        ashby_project_id=row["ashby_project_id"],
         source_tag=row["source_tag"],
         active=bool(row["active"]),
         exa_webhook_id=row["exa_webhook_id"],

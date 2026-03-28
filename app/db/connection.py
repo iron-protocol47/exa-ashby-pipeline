@@ -16,6 +16,18 @@ def connect(path: Path) -> sqlite3.Connection:
     return conn
 
 
+def _migrate_mappings_job_to_project(conn: sqlite3.Connection) -> None:
+    """Rename ashby_job_id → ashby_project_id for DBs created before v2."""
+    rows = conn.execute("PRAGMA table_info(mappings)").fetchall()
+    if not rows:
+        return
+    cols = {r[1] for r in rows}
+    if "ashby_job_id" in cols and "ashby_project_id" not in cols:
+        conn.execute(
+            "ALTER TABLE mappings RENAME COLUMN ashby_job_id TO ashby_project_id"
+        )
+
+
 def init_db(path: Path) -> None:
     """Create tables and record schema version."""
     path = Path(path)
@@ -23,6 +35,7 @@ def init_db(path: Path) -> None:
     conn = connect(path)
     try:
         conn.executescript(schema.DDL)
+        _migrate_mappings_job_to_project(conn)
         row = conn.execute(
             "SELECT 1 FROM schema_migrations WHERE version = ?",
             (schema.SCHEMA_VERSION,),
