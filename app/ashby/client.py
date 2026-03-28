@@ -82,34 +82,25 @@ class AshbyClient:
         r.raise_for_status()
         return r.json()
 
-    def application_create(
-        self,
-        *,
-        candidate_id: str,
-        job_id: str,
-        credited_user_id: str | None = None,
-    ) -> dict[str, Any]:
-        payload: dict[str, Any] = {
-            "candidateId": candidate_id,
-            "jobId": job_id,
-        }
-        if credited_user_id:
-            payload["creditedUserId"] = credited_user_id
-        r = self._client.post("/application.create", json=payload)
+    def candidate_add_project(self, *, candidate_id: str, project_id: str) -> dict[str, Any]:
+        r = self._client.post(
+            "/candidate.addProject",
+            json={"candidateId": candidate_id, "projectId": project_id},
+        )
         r.raise_for_status()
         return r.json()
 
-    def create_candidate_and_apply_to_job(
+    def create_candidate_and_add_to_project(
         self,
         *,
-        job_id: str,
+        project_id: str,
         name: str | None,
         email: str | None,
         linkedin_url: str | None,
-        credited_user_id: str | None = None,
     ) -> str:
         """
-        Create a candidate then attach an application to the job.
+        Create a candidate then add them to an Ashby Project (not a job application).
+        See https://developers.ashbyhq.com/reference/candidateaddproject
         Returns Ashby candidate id.
         """
         cand_body = build_candidate_create_body(
@@ -123,9 +114,5 @@ class AshbyClient:
         cid = candidate_id_from_create_response(created)
         if not cid:
             raise ValueError("candidate.create response missing candidate id")
-        self.application_create(
-            candidate_id=cid,
-            job_id=job_id,
-            credited_user_id=credited_user_id,
-        )
+        self.candidate_add_project(candidate_id=cid, project_id=project_id)
         return cid
