@@ -13,6 +13,32 @@ def _unwrap_results(data: dict[str, Any]) -> dict[str, Any] | None:
     return r if isinstance(r, dict) else None
 
 
+def projects_from_list_response(data: dict[str, Any]) -> list[dict[str, str]]:
+    """Normalize project.list JSON to [{id, title}, ...] for admin UI."""
+    out: list[dict[str, str]] = []
+    results = data.get("results")
+    projects: list[Any] | None = None
+    if isinstance(results, dict):
+        raw = results.get("projects")
+        if isinstance(raw, list):
+            projects = raw
+    elif isinstance(results, list):
+        projects = results
+    if not isinstance(projects, list):
+        return out
+    for p in projects:
+        if not isinstance(p, dict):
+            continue
+        pid = p.get("id")
+        if not isinstance(pid, str):
+            continue
+        title = p.get("title") or p.get("name")
+        if not isinstance(title, str) or not title.strip():
+            title = pid
+        out.append({"id": pid, "title": title.strip()})
+    return out
+
+
 def candidate_id_from_create_response(data: dict[str, Any]) -> str | None:
     """Parse candidate id from candidate.create JSON (shape varies slightly)."""
     results = _unwrap_results(data) or data
@@ -87,6 +113,12 @@ class AshbyClient:
             "/candidate.addProject",
             json={"candidateId": candidate_id, "projectId": project_id},
         )
+        r.raise_for_status()
+        return r.json()
+
+    def project_list(self, body: dict[str, Any] | None = None) -> dict[str, Any]:
+        """POST /project.list — list Ashby projects (needs project read permission on the key)."""
+        r = self._client.post("/project.list", json=body if body is not None else {})
         r.raise_for_status()
         return r.json()
 

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exa → Ashby mappings</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #1a2332;
+      --border: #2d3a4d;
+      --text: #e7edf4;
+      --muted: #8b9cb3;
+      --accent: #5b9fd4;
+      --danger: #e07070;
+      --ok: #6bcf8e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    h1 { font-size: 1.35rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1.35rem;
+      margin-bottom: 1.25rem;
+    }
+    h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 1rem; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .row { display: grid; gap: 1rem; }
+    @media (min-width: 560px) {
+      .row.cols-2 { grid-template-columns: 1fr 1fr; }
+    }
+    button {
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.55rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+    button.primary {
+      background: #2a4a66;
+      border-color: #3d6a8c;
+      color: #fff;
+    }
+    button.primary:hover { background: #335a7a; }
+    button.danger { border-color: #804040; color: var(--danger); }
+    button.small { padding: 0.35rem 0.65rem; font-size: 0.8rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+    .banner {
+      padding: 0.65rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .banner.err { background: #3a2020; border: 1px solid #6a3030; color: #f0b0b0; }
+    .banner.ok { background: #1e3328; border: 1px solid #2d5a40; color: var(--ok); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; color: var(--muted); font-weight: 500; padding: 0.5rem 0.35rem 0.5rem 0; border-bottom: 1px solid var(--border); }
+    td { padding: 0.65rem 0.35rem 0.65rem 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    code { font-size: 0.8em; background: var(--bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Webset → Ashby project mappings</h1>
+    <p class="sub">Each Exa webset sends enriched candidates to one Ashby project. Sign in with the same credentials as <code>/api/mappings</code>.</p>
+
+    <section id="login-section">
+      <h2>Sign in</h2>
+      <div id="login-error" class="banner err hidden"></div>
+      <div class="row cols-2">
+        <div>
+          <label for="user">Admin username</label>
+          <input type="text" id="user" autocomplete="username" />
+        </div>
+        <div>
+          <label for="pass">Admin password</label>
+          <input type="password" id="pass" autocomplete="current-password" />
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-login">Continue</button>
+      </div>
+    </section>
+
+    <section id="app-section" class="hidden">
+      <div id="app-error" class="banner err hidden"></div>
+      <div id="app-ok" class="banner ok hidden"></div>
+
+      <h2>New mapping</h2>
+      <div class="row cols-2">
+        <div>
+          <label for="new-webset">Exa webset ID</label>
+          <input type="text" id="new-webset" placeholder="ws_…" />
+        </div>
+        <div>
+          <label for="new-project">Ashby project</label>
+          <select id="new-project"></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:1rem; max-width: 28rem;">
+        <div>
+          <label for="new-tag">Source tag</label>
+          <input type="text" id="new-tag" placeholder="Shown on candidate / for reporting" />
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="primary" id="btn-create">Create mapping</button>
+        <button type="button" id="btn-refresh-projects">Reload projects</button>
+        <button type="button" id="btn-logout">Sign out</button>
+      </div>
+
+      <h2 style="margin-top:1.75rem;">Existing mappings</h2>
+      <p class="muted" id="mappings-empty">No mappings yet.</p>
+      <div style="overflow-x:auto;">
+        <table id="mappings-table" class="hidden">
+          <thead>
+            <tr>
+              <th>Webset</th>
+              <th>Ashby project</th>
+              <th>Tag</th>
+              <th>Active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="mappings-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script>
+    const LS = "exaAshbyAdminBasic";
+    function authHeader() {
+      const raw = sessionStorage.getItem(LS);
+      if (!raw) return null;
+      return "Basic " + btoa(raw);
+    }
+    function setBanner(el, msg) {
+      if (!msg) { el.classList.add("hidden"); el.textContent = ""; return; }
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+    async function api(path, opts = {}) {
+      const h = authHeader();
+      if (!h) throw new Error("Not signed in");
+      const r = await fetch(path, {
+        ...opts,
+        headers: {
+          ...(opts.headers || {}),
+          Authorization: h,
+          Accept: "application/json",
+          ...(opts.body && !opts.headers?.["Content-Type"] ? { "Content-Type": "application/json" } : {}),
+        },
+      });
+      const text = await r.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch (_) {}
+      if (!r.ok) {
+        const detail = data && data.detail != null ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail)) : text || r.statusText;
+        throw new Error(detail || "Request failed");
+      }
+      return data;
+    }
+    let projects = [];
+
+    function fillProjectSelects() {
+      const newSel = document.getElementById("new-project");
+      newSel.innerHTML =
+        '<option value="">— Select project —</option>' +
+        projects
+          .map(
+            (p) =>
+              `<option value="${String(p.id).replace(/"/g, "&quot;")}">${(p.title || p.id).replace(/</g, "&lt;")}</option>`
+          )
+          .join("");
+    }
+
+    function rowSelect(mapping) {
+      const sid = "proj-" + mapping.id;
+      const opts = projects
+        .map((p) => {
+          const sel = p.id === mapping.ashbyProjectId ? " selected" : "";
+          return `<option value="${String(p.id).replace(/"/g, "&quot;")}"${sel}>${(p.title || p.id).replace(/</g, "&lt;")}</option>`;
+        })
+        .join("");
+      return `<select id="${sid}" data-mid="${mapping.id}" style="max-width:14rem;font-size:0.85rem;">${opts}</select>`;
+    }
+
+    async function loadProjects() {
+      const data = await api("/api/ashby/projects");
+      projects = data.projects || [];
+      fillProjectSelects();
+    }
+
+    async function loadMappings() {
+      const data = await api("/api/mappings");
+      const list = data.mappings || [];
+      const empty = document.getElementById("mappings-empty");
+      const table = document.getElementById("mappings-table");
+      const body = document.getElementById("mappings-body");
+      if (list.length === 0) {
+        empty.classList.remove("hidden");
+        table.classList.add("hidden");
+        body.innerHTML = "";
+        return;
+      }
+      empty.classList.add("hidden");
+      table.classList.remove("hidden");
+      body.innerHTML = list.map(m => `
+        <tr>
+          <td><code>${String(m.websetId).replace(/</g, "&lt;")}</code></td>
+          <td>${rowSelect(m)}</td>
+          <td><input type="text" value="${String(m.sourceTag).replace(/"/g, "&quot;")}" data-mid="${m.id}" class="tag-inp" style="max-width:10rem;" /></td>
+          <td><input type="checkbox" ${m.active ? "checked" : ""} data-mid="${m.id}" class="act-chk" /></td>
+          <td>
+            <button type="button" class="small primary btn-save" data-mid="${m.id}">Save</button>
+            <button type="button" class="small danger btn-del" data-mid="${m.id}">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+
+      body.querySelectorAll(".btn-save").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = +btn.getAttribute("data-mid");
+          const sel = document.getElementById("proj-" + id);
+          const tagInp = body.querySelector(`input.tag-inp[data-mid="${id}"]`);
+          const chk = body.querySelector(`input.act-chk[data-mid="${id}"]`);
+          setBanner(document.getElementById("app-error"), "");
+          setBanner(document.getElementById("app-ok"), "");
+          try {
+            await api("/api/mappings/" + id, {
+              method: "PATCH",
+              body: JSON.stringify({
+                ashby_project_id: sel.value,
+                source_tag: tagInp.value.trim(),
+                active: chk.checked,
+              }),
+            });
+            setBanner(document.getElementById("app-ok"), "Saved mapping #" + id);
+          } catch (e) {
+            setBanner(document.getElementById("app-error"), e.message);
+          }
+        });
+      });
+      body.querySelectorAll(".btn-del").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = +btn.getAttribute("data-mid");
+          if (!confirm("Delete mapping #" + id + "?")) return;
+          setBanner(document.getElementById("app-error"), "");
+          try {
+            await api("/api/mappings/" + id, { method: "DELETE" });
+            setBanner(document.getElementById("app-ok"), "Deleted mapping #" + id);
+            await loadMappings();
+          } catch (e) {
+            setBanner(document.getElementById("app-error"), e.message);
+          }
+        });
+      });
+    }
+
+    function showApp() {
+      document.getElementById("login-section").classList.add("hidden");
+      document.getElementById("app-section").classList.remove("hidden");
+    }
+    function showLogin() {
+      sessionStorage.removeItem(LS);
+      document.getElementById("app-section").classList.add("hidden");
+      document.getElementById("login-section").classList.remove("hidden");
+    }
+
+    document.getElementById("btn-login").addEventListener("click", async () => {
+      const u = document.getElementById("user").value.trim();
+      const p = document.getElementById("pass").value;
+      setBanner(document.getElementById("login-error"), "");
+      if (!u || !p) {
+        setBanner(document.getElementById("login-error"), "Enter username and password.");
+        return;
+      }
+      sessionStorage.setItem(LS, u + ":" + p);
+      try {
+        await api("/api/mappings");
+        showApp();
+        await loadProjects();
+        await loadMappings();
+      } catch (e) {
+        sessionStorage.removeItem(LS);
+        setBanner(document.getElementById("login-error"), e.message);
+      }
+    });
+
+    document.getElementById("btn-logout").addEventListener("click", () => {
+      showLogin();
+    });
+
+    document.getElementById("btn-refresh-projects").addEventListener("click", async () => {
+      setBanner(document.getElementById("app-error"), "");
+      try {
+        await loadProjects();
+        await loadMappings();
+        setBanner(document.getElementById("app-ok"), "Projects reloaded.");
+      } catch (e) {
+        setBanner(document.getElementById("app-error"), e.message);
+      }
+    });
+
+    document.getElementById("btn-create").addEventListener("click", async () => {
+      const webset = document.getElementById("new-webset").value.trim();
+      const projectId = document.getElementById("new-project").value;
+      const tag = document.getElementById("new-tag").value.trim();
+      setBanner(document.getElementById("app-error"), "");
+      setBanner(document.getElementById("app-ok"), "");
+      if (!webset || !projectId || !tag) {
+        setBanner(document.getElementById("app-error"), "Webset ID, project, and source tag are required.");
+        return;
+      }
+      try {
+        await api("/api/mappings", {
+          method: "POST",
+          body: JSON.stringify({
+            webset_id: webset,
+            ashby_project_id: projectId,
+            source_tag: tag,
+            active: true,
+          }),
+        });
+        document.getElementById("new-webset").value = "";
+        document.getElementById("new-tag").value = "";
+        setBanner(document.getElementById("app-ok"), "Mapping created.");
+        await loadMappings();
+      } catch (e) {
+        setBanner(document.getElementById("app-error"), e.message);
+      }
+    });
+
+    (async function init() {
+      if (authHeader()) {
+        try {
+          await api("/api/mappings");
+          showApp();
+          await loadProjects();
+          await loadMappings();
+        } catch (_) {
+          sessionStorage.removeItem(LS);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

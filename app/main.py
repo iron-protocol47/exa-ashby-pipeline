@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from app.config import ensure_database_parent_dir, get_settings
 from app.db.connection import init_db
-from app.routers import admin_api, catch_up, exa_webhook
+from app.routers import admin_api, admin_ui, catch_up, exa_webhook
 
 
 @asynccontextmanager
@@ -25,6 +25,7 @@ app = FastAPI(
 
 app.include_router(exa_webhook.router)
 app.include_router(admin_api.router)
+app.include_router(admin_ui.router)
 app.include_router(catch_up.router)
 
 
